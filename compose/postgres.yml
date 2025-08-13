@@ -26,7 +26,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ../db/migrations:/migrations
+      - ../db/migrations:/migrations:ro
 #    environment:
 #      POSTGRES_USER: postgres
 #      POSTGRES_PASSWORD: postgres
