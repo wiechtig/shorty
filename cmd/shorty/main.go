@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"go.wiechtig.com/shorty/internal/resolver"
-	"go.wiechtig.com/shorty/internal/shared"
-	"go.wiechtig.com/shorty/internal/store"
+	"wiechtig.com/shorty/internal/resolver"
+	"wiechtig.com/shorty/internal/shared"
+	"wiechtig.com/shorty/internal/store"
 )
 
 func main() {

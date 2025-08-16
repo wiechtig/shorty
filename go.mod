@@ -1,4 +1,4 @@
-module go.wiechtig.com/shorty
+module wiechtig.com/shorty
 
 go 1.24
 

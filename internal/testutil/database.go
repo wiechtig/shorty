@@ -3,9 +3,6 @@ package testutil
 import (
 	"context"
 	"fmt"
-	"go.wiechtig.com/shorty/internal/shared"
-	"go.wiechtig.com/shorty/internal/store"
-	"go.wiechtig.com/shorty/pkg/nanoid"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +10,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"wiechtig.com/shorty/internal/shared"
+	"wiechtig.com/shorty/internal/store"
+	"wiechtig.com/shorty/pkg/nanoid"
 )
 
 // needs a running postgres instance

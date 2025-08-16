@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.wiechtig.com/shorty/internal/store"
+	"wiechtig.com/shorty/internal/store"
 )
 
 func ResolveHandler(s *store.Queries) http.HandlerFunc {

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"go.wiechtig.com/shorty/internal/store"
-	"go.wiechtig.com/shorty/internal/testutil"
+	"wiechtig.com/shorty/internal/store"
+	"wiechtig.com/shorty/internal/testutil"
 )
 
 func TestShortenedLinkResolver(t *testing.T) {
