@@ -33,6 +33,7 @@ func main() {
 		panic("database url is required")
 	}
 	dbpool := shared.SetupDatabase(databaseUrl)
+	shared.RunMigrations(dbpool, "db/migrations")
 	s := store.New(dbpool)
 
 	// Setup server and routes
