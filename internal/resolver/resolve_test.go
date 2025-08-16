@@ -1,13 +1,14 @@
-package main
+package resolver
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"go.wiechtig.com/shorty/internal/store"
-	"go.wiechtig.com/shorty/internal/testutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.wiechtig.com/shorty/internal/store"
+	"go.wiechtig.com/shorty/internal/testutil"
 )
 
 func TestShortenedLinkResolver(t *testing.T) {
@@ -15,7 +16,7 @@ func TestShortenedLinkResolver(t *testing.T) {
 
 	testutil.WithDatabase(ctx, t, func(t *testing.T, db *pgxpool.Pool, s *store.Queries) {
 		// create a new test server with a simple handler
-		server := httptest.NewServer(resolveHandler(s))
+		server := httptest.NewServer(ResolveHandler(s))
 		defer server.Close()
 
 		t.Run("returns 302 when valid short code exists", func(t *testing.T) {

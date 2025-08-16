@@ -1,15 +1,16 @@
-package main
+package resolver
 
 import (
 	"context"
 	"fmt"
-	"go.wiechtig.com/shorty/internal/store"
 	"log/slog"
 	"net/http"
 	"strings"
+
+	"go.wiechtig.com/shorty/internal/store"
 )
 
-func resolveHandler(s *store.Queries) http.HandlerFunc {
+func ResolveHandler(s *store.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 

@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"go.wiechtig.com/shorty/internal/shared"
-	"go.wiechtig.com/shorty/internal/store"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,6 +9,10 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"go.wiechtig.com/shorty/internal/resolver"
+	"go.wiechtig.com/shorty/internal/shared"
+	"go.wiechtig.com/shorty/internal/store"
 )
 
 func main() {
@@ -35,7 +37,7 @@ func main() {
 
 	// Setup server and routes
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", resolveHandler(s))
+	mux.HandleFunc("/", resolver.ResolveHandler(s))
 	server := &http.Server{
 		Addr:         ":4242",
 		Handler:      mux,
