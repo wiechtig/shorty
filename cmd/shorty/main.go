@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"wiechtig.com/shorty/internal/resolver"
 	"wiechtig.com/shorty/internal/shared"
 	"wiechtig.com/shorty/internal/store"
@@ -41,11 +42,29 @@ func main() {
 	mux.HandleFunc("/", resolver.ResolveHandler(s))
 	server := &http.Server{
 		Addr:         ":4242",
-		Handler:      shared.Logging()(mux),
+		Handler:      shared.Telemetry(mux),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
+
+	mm := http.NewServeMux()
+	mm.Handle("/metrics", promhttp.Handler())
+	metrics := &http.Server{
+		Addr:         ":4343",
+		Handler:      shared.Telemetry(mm),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	// Start the metrics server
+	wg.Add(1)
+	go shared.HTTPServer(shared.HTTPServerParams{
+		Ctx:    ctx,
+		Wg:     &wg,
+		Server: metrics,
+	})
 
 	// Start the HTTP server
 	wg.Add(1)
