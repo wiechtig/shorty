@@ -1,0 +1,38 @@
+services:
+  migrate: # we need the migrate job to be able to seed the data
+    image: migrate/migrate
+    container_name: migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../db/migrations:/migrations:ro
+    #    environment:
+    #      POSTGRES_USER: postgres
+    #      POSTGRES_PASSWORD: postgres
+    #      POSTGRES_DB: shorty
+    command: >
+      -path=/migrations/
+      -database postgres://postgres:postgres@postgres:5432/shorty?sslmode=disable
+      up
+    restart: "no"
+  seed_data:
+    image: postgres:17-alpine
+    container_name: seed_data
+    volumes:
+      - ../db/data:/data:ro
+    environment:
+      - PGPASSWORD=postgres
+    command: >
+      sh -c "
+      for file in /data/*.sql; do
+        if [ -f \"$$file\" ]; then
+          echo \"Executing $$file\";
+          psql -h postgres -U postgres -d shorty -f \"$$file\";
+        fi
+      done
+      "
+    restart: "no"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
