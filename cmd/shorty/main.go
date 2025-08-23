@@ -41,7 +41,7 @@ func main() {
 	mux.HandleFunc("/", resolver.ResolveHandler(s))
 	server := &http.Server{
 		Addr:         ":4242",
-		Handler:      mux,
+		Handler:      shared.Logging()(mux),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,

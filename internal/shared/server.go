@@ -44,3 +44,22 @@ func HTTPServer(params HTTPServerParams) {
 
 	slog.Info("HTTP server stopped.")
 }
+
+func Logging() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				slog.LogAttrs(
+					r.Context(),
+					slog.LevelInfo,
+					"request",
+					slog.String("method", r.Method),
+					slog.String("url", r.URL.Path),
+					slog.String("ip", r.RemoteAddr),
+					slog.String("user_agent", r.UserAgent()),
+				)
+			}()
+			next.ServeHTTP(w, r)
+		})
+	}
+}
