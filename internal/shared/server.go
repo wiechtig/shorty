@@ -2,6 +2,7 @@ package shared
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -25,7 +26,7 @@ var (
 			Name: "shorty_http_requests_total",
 			Help: "Total number of HTTP requests",
 		},
-		[]string{"method", "path", "status_code"},
+		[]string{"component"},
 	)
 
 	requestDuration = promauto.NewHistogramVec(
@@ -34,7 +35,7 @@ var (
 			Help:    "Duration of HTTP requests in seconds",
 			Buckets: prometheus.DefBuckets,
 		},
-		[]string{"method", "path", "status_code"},
+		[]string{"component"},
 	)
 )
 
@@ -47,7 +48,7 @@ func HTTPServer(params HTTPServerParams) {
 	// Start the HTTP server in a separate goroutine
 	go func() {
 		slog.InfoContext(ctx, "Starting HTTP server", slog.String("address", server.Addr))
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.ErrorContext(ctx, "Could not listen and serve", slog.String("address", server.Addr), slog.Any("error", err))
 		}
 	}()
@@ -69,46 +70,42 @@ func HTTPServer(params HTTPServerParams) {
 	slog.Info("HTTP server stopped.")
 }
 
-func Telemetry(next http.Handler) http.Handler {
-	return Metrics()(Logging()(next))
+func Telemetry(next http.Handler, component string) http.Handler {
+	return Metrics(component)(Logging()(next))
 }
 
 func Logging() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				slog.LogAttrs(
-					r.Context(),
-					slog.LevelInfo,
-					"request",
-					slog.String("method", r.Method),
-					slog.String("url", r.URL.Path),
-					slog.String("ip", r.RemoteAddr),
-					slog.String("user_agent", r.UserAgent()),
-				)
-			}()
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func Metrics() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			m := httpsnoop.CaptureMetrics(next, w, r)
 
 			statusCode := strconv.Itoa(m.Code)
 
+			slog.LogAttrs(
+				r.Context(),
+				slog.LevelInfo,
+				"request",
+				slog.String("method", r.Method),
+				slog.String("status_code", statusCode),
+				slog.String("url", r.URL.Path),
+				slog.String("ip", r.RemoteAddr),
+				slog.String("user_agent", r.UserAgent()),
+			)
+		})
+	}
+}
+
+func Metrics(component string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			m := httpsnoop.CaptureMetrics(next, w, r)
+
 			requestsTotal.WithLabelValues(
-				r.Method,
-				r.URL.Path,
-				statusCode,
+				component,
 			).Inc()
 
 			requestDuration.WithLabelValues(
-				r.Method,
-				r.URL.Path,
-				statusCode,
+				component,
 			).Observe(m.Duration.Seconds())
 		})
 	}

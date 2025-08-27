@@ -42,7 +42,7 @@ func main() {
 	mux.HandleFunc("/", resolver.ResolveHandler(s))
 	server := &http.Server{
 		Addr:         ":4242",
-		Handler:      shared.Telemetry(mux),
+		Handler:      shared.Telemetry(mux, "resolver"),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
@@ -52,7 +52,7 @@ func main() {
 	mm.Handle("/metrics", promhttp.Handler())
 	metrics := &http.Server{
 		Addr:         ":4343",
-		Handler:      shared.Telemetry(mm),
+		Handler:      shared.Telemetry(mm, "telemetry"),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
