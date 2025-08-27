@@ -33,9 +33,9 @@ func main() {
 	if databaseUrl == "" {
 		panic("database url is required")
 	}
-	dbpool := shared.SetupDatabase(databaseUrl)
-	shared.RunMigrations(dbpool, "db/migrations")
-	s := store.New(dbpool)
+	dbPool := shared.SetupDatabase(databaseUrl)
+	shared.RunMigrations(dbPool, "db/migrations")
+	s := store.New(dbPool)
 
 	// Setup server and routes
 	mux := http.NewServeMux()
