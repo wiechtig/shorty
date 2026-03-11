@@ -30,6 +30,12 @@ type ServerInterface interface {
 	// Create a new short code
 	// (POST /short-codes)
 	CreateShortCode(w http.ResponseWriter, r *http.Request)
+	// Delete a short code
+	// (DELETE /short-codes/{short-code})
+	DeleteShortCode(w http.ResponseWriter, r *http.Request, shortCode string)
+	// Get a short code
+	// (GET /short-codes/{short-code})
+	GetShortCode(w http.ResponseWriter, r *http.Request, shortCode string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -63,11 +69,11 @@ func (siw *ServerInterfaceWrapper) ListShortCodes(w http.ResponseWriter, r *http
 		return
 	}
 
-	// ------------- Optional query parameter "offset" -------------
+	// ------------- Optional query parameter "previous_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	err = runtime.BindQueryParameter("form", true, false, "previous_id", r.URL.Query(), &params.PreviousId)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "previous_id", Err: err})
 		return
 	}
 
@@ -93,6 +99,68 @@ func (siw *ServerInterfaceWrapper) CreateShortCode(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateShortCode(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteShortCode operation middleware
+func (siw *ServerInterfaceWrapper) DeleteShortCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "short-code" -------------
+	var shortCode string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "short-code", r.PathValue("short-code"), &shortCode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "short-code", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteShortCode(w, r, shortCode)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShortCode operation middleware
+func (siw *ServerInterfaceWrapper) GetShortCode(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "short-code" -------------
+	var shortCode string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "short-code", r.PathValue("short-code"), &shortCode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "short-code", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShortCode(w, r, shortCode)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -224,6 +292,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("GET "+options.BaseURL+"/short-codes", wrapper.ListShortCodes)
 	m.HandleFunc("POST "+options.BaseURL+"/short-codes", wrapper.CreateShortCode)
+	m.HandleFunc("DELETE "+options.BaseURL+"/short-codes/{short-code}", wrapper.DeleteShortCode)
+	m.HandleFunc("GET "+options.BaseURL+"/short-codes/{short-code}", wrapper.GetShortCode)
 
 	return m
 }
@@ -328,6 +398,119 @@ func (response CreateShortCode500Response) VisitCreateShortCodeResponse(w http.R
 	return nil
 }
 
+type DeleteShortCodeRequestObject struct {
+	ShortCode string `json:"short-code"`
+}
+
+type DeleteShortCodeResponseObject interface {
+	VisitDeleteShortCodeResponse(w http.ResponseWriter) error
+}
+
+type DeleteShortCode204Response struct {
+}
+
+func (response DeleteShortCode204Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteShortCode400Response struct {
+}
+
+func (response DeleteShortCode400Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type DeleteShortCode401Response struct {
+}
+
+func (response DeleteShortCode401Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type DeleteShortCode403Response struct {
+}
+
+func (response DeleteShortCode403Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(403)
+	return nil
+}
+
+type DeleteShortCode404Response struct {
+}
+
+func (response DeleteShortCode404Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
+type DeleteShortCode500Response struct {
+}
+
+func (response DeleteShortCode500Response) VisitDeleteShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type GetShortCodeRequestObject struct {
+	ShortCode string `json:"short-code"`
+}
+
+type GetShortCodeResponseObject interface {
+	VisitGetShortCodeResponse(w http.ResponseWriter) error
+}
+
+type GetShortCode200JSONResponse ShortCode
+
+func (response GetShortCode200JSONResponse) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShortCode400Response struct {
+}
+
+func (response GetShortCode400Response) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type GetShortCode401Response struct {
+}
+
+func (response GetShortCode401Response) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type GetShortCode403Response struct {
+}
+
+func (response GetShortCode403Response) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(403)
+	return nil
+}
+
+type GetShortCode404Response struct {
+}
+
+func (response GetShortCode404Response) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
+type GetShortCode500Response struct {
+}
+
+func (response GetShortCode500Response) VisitGetShortCodeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// List short codes
@@ -336,6 +519,12 @@ type StrictServerInterface interface {
 	// Create a new short code
 	// (POST /short-codes)
 	CreateShortCode(ctx context.Context, request CreateShortCodeRequestObject) (CreateShortCodeResponseObject, error)
+	// Delete a short code
+	// (DELETE /short-codes/{short-code})
+	DeleteShortCode(ctx context.Context, request DeleteShortCodeRequestObject) (DeleteShortCodeResponseObject, error)
+	// Get a short code
+	// (GET /short-codes/{short-code})
+	GetShortCode(ctx context.Context, request GetShortCodeRequestObject) (GetShortCodeResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -424,22 +613,76 @@ func (sh *strictHandler) CreateShortCode(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// DeleteShortCode operation middleware
+func (sh *strictHandler) DeleteShortCode(w http.ResponseWriter, r *http.Request, shortCode string) {
+	var request DeleteShortCodeRequestObject
+
+	request.ShortCode = shortCode
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteShortCode(ctx, request.(DeleteShortCodeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteShortCode")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteShortCodeResponseObject); ok {
+		if err := validResponse.VisitDeleteShortCodeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetShortCode operation middleware
+func (sh *strictHandler) GetShortCode(w http.ResponseWriter, r *http.Request, shortCode string) {
+	var request GetShortCodeRequestObject
+
+	request.ShortCode = shortCode
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShortCode(ctx, request.(GetShortCodeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShortCode")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShortCodeResponseObject); ok {
+		if err := validResponse.VisitGetShortCodeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

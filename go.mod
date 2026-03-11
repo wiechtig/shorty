@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/oapi-codegen/nethttp-middleware v1.1.2
 	github.com/oapi-codegen/runtime v1.1.2
+	github.com/oapi-codegen/testutil v1.1.0
 	github.com/prometheus/client_golang v1.23.0
 )
 

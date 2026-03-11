@@ -19,3 +19,13 @@ func (s Server) ListShortCodes(ctx context.Context, request ListShortCodesReques
 
 	return nil, errors.New("ListShortCodes not implemented")
 }
+
+func (s Server) DeleteShortCode(ctx context.Context, request DeleteShortCodeRequestObject) (DeleteShortCodeResponseObject, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s Server) GetShortCode(ctx context.Context, request GetShortCodeRequestObject) (GetShortCodeResponseObject, error) {
+	//TODO implement me
+	panic("implement me")
+}

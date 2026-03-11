@@ -56,14 +56,15 @@ paths:
             type: "integer"
             format: "int32"
             default: 100
-        - name: "offset"
+            minimum: 20
+            maximum: 1000
+        - name: "previous_id"
           in: "query"
-          description: "Number of items to skip before starting to collect the result set"
+          description: "Last seen ID for pagination"
           required: false
           schema:
             type: "integer"
             format: "int32"
-            default: 0
       responses:
         '200':
           description: "A list of short codes."
@@ -81,6 +82,57 @@ paths:
           description: "Forbidden"
         '500':
           description: "Internal Server Error"
+  /short-codes/{short-code}:
+    get:
+      summary: "Get a short code"
+      operationId: "getShortCode"
+      parameters:
+        - name: "short-code"
+          in: "path"
+          description: "short code to retrieve"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '200':
+          description: "Short code details"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortCode"
+        '400':
+          description: "Bad Request"
+        '401':
+          description: "Unauthorized"
+        '403':
+          description: "Forbidden"
+        '404':
+          description: "Not Found"
+        '500':
+          description: "Internal Server Error"
+    delete:
+      summary: "Delete a short code"
+      operationId: "deleteShortCode"
+      parameters:
+        - name: "short-code"
+          in: "path"
+          description: "short code to delete"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '204':
+          description: "Short code deleted successfully."
+        '400':
+          description: "Bad Request"
+        '401':
+          description: "Unauthorized"
+        '403':
+          description: "Forbidden"
+        '404':
+          description: "Not Found"
+        '500':
+          description: "Internal Server Error"
 
 components:
   securitySchemes:
@@ -95,6 +147,7 @@ components:
         id:
           nullable: false
           type: "integer"
+          format: "int32"
         shortCode:
           nullable: false
           type: "string"
@@ -104,9 +157,11 @@ components:
         createdAt:
           nullable: false
           type: "string"
+          format: "date-time"
         expiresAt:
           nullable: true
           type: "string"
+          format: "date-time"
         attributes:
           nullable: false
           type: "object"
@@ -121,6 +176,7 @@ components:
         expiresAt:
           nullable: true
           type: "string"
+          format: "date-time"
         attributes:
           nullable: false
           type: "object"
